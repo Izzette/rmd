@@ -1,39 +1,50 @@
-import visual
+import pygame
+from pygame.locals import *
+from OpenGL.GL import *
+from OpenGL.GLU import *
 
 
 class Scene:
-    
-    def __init__ (self):
-        self.scene = visual.display(
-            title = "LANDSCAPES by Random Midpoint Distribution",
-            x = 0,
-            y = 0,
-            width = 700,
-            height = 560,
-            axis = (0., 0., 1.),
-            background = (0., 0., 0.)
+
+    def __init__(self, window_size=[500, 500]):
+        self.window = pygame.display.set_mode(
+            window_size, HWSURFACE | OPENGL | DOUBLEBUF
             )
+        glViewport(0, 0, window_size[0], window_size[1])
+        glShadeModel(GL_SMOOTH)
+        glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST)
+        viewport = glGetIntegerv(GL_VIEWPORT)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluPerspective(
+            60.0,
+            float(viewport[2]) / float(viewport[3]),
+            0.1,
+            1000.0
+            )
+        glMatrixMode(GL_MODELVIEW)
+        glLoadIdentity()
 
-    def Get_Scene(self):
-        return self.scene
+    def Get_Window(self):
+        return self.window
 
-    def Set_Camera(self, pos="world", vertices=[[[]]]):
-        if "world" == pos:
-            self.scene.autoscale = True
-        elif "center" == pos:
-            row = vertices[len(vertices) / 2]
-            vertex = row[len(row) / 2]
-            self.scene.autoscale = False
-            self.scene.center = (
-                vertex[0] / 2.,
-                vertex[1] + 10.,
-                vertex[2] / 2.
-                )
-            self.scene.range = (vertex[0] + vertex[2]) / 4.
 
-    def Set_Axis(self, axis=(0., 0., 1.)):
-        self.scene.axis = axis
+def init():
+    global scene
+    scene = Scene()
 
-    def Exit(self):
-        self.scene.visible = False
-        del self.scene
+
+def Get():
+    try:
+        return scene
+    except:
+        init()
+        return scene
+
+
+def Draw(points):
+    for p in points:
+        glClear(GL_COLOR_BUFFER_BIT)
+        glBegin(GL_POINTS)
+        glVertex2i(int(p[0]), int(p[1]), int(p[2]))
+        glEnd()
